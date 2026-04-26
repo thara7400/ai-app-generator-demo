@@ -1,0 +1,38 @@
+{
+  "name": "orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "smoke": "tsx src/smoke-test.ts",
+    "generate:calculator": "tsx src/generate-calculator.ts",
+    "generate:unit-converter": "tsx src/generate-unit-converter.ts",
+    "generate:timer": "tsx src/generate-timer.ts",
+    "generate:whack-a-mole": "tsx src/generate-whack-a-mole.ts",
+    "generate:memory-match": "tsx src/generate-memory-match.ts",
+    "generate:number-quiz": "tsx src/generate-number-quiz.ts",
+    "debug:prompts": "tsx src/debug-prompts.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.116",
+    "@hono/node-server": "^1.13.0",
+    "dotenv": "^16.4.0",
+    "hono": "^4.6.0",
+    "pino": "^10.3.1",
+    "pino-pretty": "^13.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "volta": {
+    "node": "24.15.0"
+  }
+}
