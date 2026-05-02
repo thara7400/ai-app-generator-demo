@@ -3,6 +3,7 @@ import { jobStore } from '../lib/job-store.js';
 import { ClaudeCodeService } from './claude-code.js';
 import { githubService } from './github.js';
 import { logger } from '../lib/logger.js';
+import { notifyAppFailed } from './aituber-notifier.js';
 
 const claudeCodeService = new ClaudeCodeService();
 
@@ -71,5 +72,7 @@ async function runGenerationPipeline(jobId: string): Promise<void> {
       status: 'failed',
       error: errorMessage,
     });
+    // AITuberKit に失敗通知を送る(fire-and-forget、失敗してもジョブは failed のまま)
+    void notifyAppFailed(jobId);
   }
 }

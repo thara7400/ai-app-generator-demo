@@ -4,7 +4,7 @@ import type { Context, Next } from 'hono';
 import { jobStore } from '../lib/job-store.js';
 import { env } from '../lib/env.js';
 import { logger } from '../lib/logger.js';
-import { notifyAppCompleted } from '../services/aituber-notifier.js';
+import { notifyAppCompleted, notifyAppFailed } from '../services/aituber-notifier.js';
 
 const webhookSchema = z.object({
   runId: z.number().int().positive(),
@@ -90,6 +90,8 @@ webhookRoute.post('/build-complete', verifyWebhookAuth, async (c) => {
       error: errorMessage,
     });
     logger.warn({ jobId, error: errorMessage }, 'Job failed via webhook');
+    // AITuberKit に失敗通知を送る(fire-and-forget、失敗してもジョブは failed のまま)
+    void notifyAppFailed(jobId);
   }
 
   return c.json({
