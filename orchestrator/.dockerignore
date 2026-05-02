@@ -1,0 +1,33 @@
+# Node
+node_modules
+npm-debug.log
+
+# Build artifacts
+dist
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Tmp work directories
+.tmp
+*.log
+
+# Test / dev artifacts
+.tsbuildinfo
+coverage
+.nyc_output
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# Docker self-reference
+Dockerfile
+.dockerignore

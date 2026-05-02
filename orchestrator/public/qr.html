@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アプリ QR 表示</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+      background: #f0f8ff;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+    }
+
+    /* ── main area (top 60-65vh) ── */
+    #main-area {
+      flex: 1;
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 32px 16px;
+    }
+
+    /* ── sub area (bottom 30-35vh) ── */
+    #sub-area {
+      border-top: 2px solid #e0e0e0;
+      padding: 20px 32px 28px;
+      min-height: 30vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── idle ── */
+    #view-idle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .idle-main {
+      font-size: 48px;
+      font-weight: 700;
+      color: #2d6a9f;
+    }
+
+    .idle-sub {
+      font-size: 24px;
+      color: #555;
+    }
+
+    /* ── in_progress (MAIN area, large) ── */
+    #view-progress {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .progress-title {
+      font-size: 40px;
+      font-weight: 700;
+      color: #2d6a9f;
+      line-height: 1.3;
+    }
+
+    .steps {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 20px;
+      border-radius: 14px;
+      background: #e8f4fd;
+      border: 2px solid #c0ddf5;
+      min-width: 160px;
+      transition: all 0.3s;
+    }
+
+    .step.done {
+      background: #d4edda;
+      border-color: #4caf50;
+      color: #2e7d32;
+    }
+
+    .step.active {
+      background: #2d6a9f;
+      border-color: #1a4f7a;
+      color: #ffffff;
+      transform: scale(1.08);
+      box-shadow: 0 4px 20px rgba(45, 106, 159, 0.45);
+    }
+
+    .step-num {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .step-label {
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .elapsed {
+      font-size: 22px;
+      color: #888;
+    }
+
+    /* ── completed (MAIN area, large) ── */
+    #view-completed {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .completed-title {
+      font-size: 44px;
+      font-weight: 700;
+      color: #1b7f3a;
+    }
+
+    #qrcode {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .completed-sub {
+      font-size: 26px;
+      color: #333;
+    }
+
+    .invite-link {
+      font-size: 18px;
+      color: #2d6a9f;
+      word-break: break-all;
+      max-width: 700px;
+    }
+
+    .invite-link a {
+      color: inherit;
+    }
+
+    /* ── failed (MAIN area) ── */
+    #view-failed {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .failed-title {
+      font-size: 40px;
+      font-weight: 700;
+      color: #c0392b;
+    }
+
+    .failed-error {
+      font-size: 20px;
+      color: #888;
+      max-width: 700px;
+      word-break: break-all;
+    }
+
+    /* ── sub mini QR ── */
+    #view-mini-qr {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .mini-qr-message {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d6a9f;
+      align-self: center;
+    }
+
+    .mini-qr-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      align-self: center;
+    }
+
+    #mini-qrcode {
+      background: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+      flex-shrink: 0;
+    }
+
+    .mini-qr-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-align: left;
+    }
+
+    /* ── hidden ── */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MAIN AREA: idle / in_progress / completed / failed -->
+  <section id="main-area">
+
+    <!-- idle -->
+    <div id="view-idle">
+      <div class="idle-main">次のアプリを待ってるよ</div>
+      <div class="idle-sub">AI と話しかけてアプリを作ってもらおう!</div>
+    </div>
+
+    <!-- in_progress (大サイズ、主役) -->
+    <div id="view-progress" class="hidden">
+      <div class="progress-title" id="progress-title">アプリを作ってるよ</div>
+      <div class="steps">
+        <div class="step" id="step-1">
+          <div class="step-num" id="step-1-num">1</div>
+          <div class="step-label">いまコード書いてるね♪</div>
+        </div>
+        <div class="step" id="step-2">
+          <div class="step-num" id="step-2-num">2</div>
+          <div class="step-label">サーバーに送ってるよ〜</div>
+        </div>
+        <div class="step" id="step-3">
+          <div class="step-num" id="step-3-num">3</div>
+          <div class="step-label">アプリを組み立ててる…!</div>
+        </div>
+        <div class="step" id="step-4">
+          <div class="step-num" id="step-4-num">4</div>
+          <div class="step-label">できたよ〜!</div>
+        </div>
+      </div>
+      <div class="elapsed" id="elapsed"></div>
+    </div>
+
+    <!-- completed (大サイズ QR) -->
+    <div id="view-completed" class="hidden">
+      <div class="completed-title" id="completed-title">アプリができたよ〜!</div>
+      <div id="qrcode"></div>
+      <div class="completed-sub">スマホで読み取って、アプリで遊んでね♪</div>
+      <div class="invite-link" id="invite-link"></div>
+    </div>
+
+    <!-- failed (メインに表示) -->
+    <div id="view-failed" class="hidden">
+      <div class="failed-title">ごめんなさい、失敗しちゃった…</div>
+      <div class="failed-error" id="failed-error"></div>
+    </div>
+
+  </section>
+
+  <!-- SUB AREA: 前の完成アプリの小型 QR (activeJob がある時だけ) -->
+  <section id="sub-area" class="hidden">
+    <div id="view-mini-qr">
+      <div class="mini-qr-message">待ち時間にこちらで遊んでね♪</div>
+      <div class="mini-qr-row">
+        <div id="mini-qrcode"></div>
+        <div class="mini-qr-title" id="mini-qr-title"></div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ── state ──
+    let lastCompletedJob = null;
+    let activeJob = null;
+    let activeJobId = null;
+    let startTime = null;
+    let elapsedTimer = null;
+
+    // ── status → step index (1-based) ──
+    const STATUS_STEP = {
+      generating: 1,
+      pushing:    2,
+      building:   3,
+      completed:  4,
+    };
+
+    // ── XSS guard ──
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ── elapsed timer ──
+    function startElapsed() {
+      stopElapsed();
+      startTime = Date.now();
+      elapsedTimer = setInterval(() => {
+        if (!startTime) return;
+        const sec = Math.floor((Date.now() - startTime) / 1000);
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        document.getElementById('elapsed').textContent =
+          `経過時間: ${m}分${String(s).padStart(2, '0')}秒`;
+      }, 1000);
+    }
+
+    function stopElapsed() {
+      if (elapsedTimer) {
+        clearInterval(elapsedTimer);
+        elapsedTimer = null;
+      }
+      startTime = null;
+      document.getElementById('elapsed').textContent = '';
+    }
+
+    // ── main area renderers ──
+    function hideAllMain() {
+      document.getElementById('view-idle').classList.add('hidden');
+      document.getElementById('view-progress').classList.add('hidden');
+      document.getElementById('view-completed').classList.add('hidden');
+      document.getElementById('view-failed').classList.add('hidden');
+    }
+
+    function showMainIdle() {
+      hideAllMain();
+      document.getElementById('view-idle').classList.remove('hidden');
+    }
+
+    function showMainProgress(job) {
+      hideAllMain();
+      document.getElementById('view-progress').classList.remove('hidden');
+
+      const title = job?.spec?.title
+        ? `『${job.spec.title}』作ってるよ`
+        : 'アプリを作ってるよ';
+      document.getElementById('progress-title').textContent = title;
+
+      const activeStep = STATUS_STEP[job?.status] ?? 1;
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById('step-' + i);
+        const numEl = document.getElementById('step-' + i + '-num');
+        el.classList.remove('active', 'done');
+        if (i < activeStep) {
+          el.classList.add('done');
+          numEl.textContent = '✓';
+        } else if (i === activeStep) {
+          el.classList.add('active');
+          numEl.textContent = String(i);
+        } else {
+          numEl.textContent = String(i);
+        }
+      }
+    }
+
+    function showMainCompleted(job) {
+      hideAllMain();
+      document.getElementById('view-completed').classList.remove('hidden');
+
+      const title = job?.spec?.title
+        ? `『${job.spec.title}』ができたよ〜!`
+        : 'アプリができたよ〜!';
+      document.getElementById('completed-title').textContent = title;
+
+      const qrcodeEl = document.getElementById('qrcode');
+      qrcodeEl.innerHTML = '';
+
+      if (job.inviteUrl) {
+        new QRCode(qrcodeEl, {
+          text: job.inviteUrl,
+          width: 256,
+          height: 256,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+
+        const linkEl = document.getElementById('invite-link');
+        linkEl.innerHTML = `<a href="${escapeHtml(job.inviteUrl)}" target="_blank">${escapeHtml(job.inviteUrl)}</a>`;
+      }
+    }
+
+    function showMainFailed(job) {
+      hideAllMain();
+      document.getElementById('view-failed').classList.remove('hidden');
+      document.getElementById('failed-error').textContent = job?.error ?? '';
+    }
+
+    // ── sub area renderers ──
+    function showSubMiniQR(job) {
+      document.getElementById('sub-area').classList.remove('hidden');
+
+      const titleEl = document.getElementById('mini-qr-title');
+      titleEl.textContent = job?.spec?.title ? `『${job.spec.title}』` : 'アプリ';
+
+      const miniEl = document.getElementById('mini-qrcode');
+      miniEl.innerHTML = '';
+
+      if (job.inviteUrl) {
+        new QRCode(miniEl, {
+          text: job.inviteUrl,
+          width: 128,
+          height: 128,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      }
+    }
+
+    function hideSub() {
+      document.getElementById('sub-area').classList.add('hidden');
+    }
+
+    // ── render ──
+    function render() {
+      // メインエリア: activeJob 優先、なければ lastCompletedJob、それもなければ idle
+      if (activeJob) {
+        if (activeJob.status === 'failed') {
+          showMainFailed(activeJob);
+        } else {
+          showMainProgress(activeJob);
+        }
+      } else if (lastCompletedJob && lastCompletedJob.inviteUrl) {
+        showMainCompleted(lastCompletedJob);
+      } else {
+        showMainIdle();
+      }
+
+      // サブエリア: activeJob がある かつ failed でない 時だけ lastCompletedJob の QR を表示
+      if (activeJob && activeJob.status !== 'failed' && lastCompletedJob && lastCompletedJob.inviteUrl) {
+        showSubMiniQR(lastCompletedJob);
+      } else {
+        hideSub();
+      }
+    }
+
+    // ── SSE handlers ──
+    function onIdle() {
+      activeJob = null;
+      activeJobId = null;
+      stopElapsed();
+      render();
+    }
+
+    function onJobChanged(jobId) {
+      if (jobId === activeJobId) return;  // 同一ジョブ → 維持(タイムアウト再接続対策)
+      activeJobId = jobId;
+      activeJob = null;
+      startElapsed();
+      render();
+    }
+
+    function onStatus(job) {
+      if (job.status === 'completed') {
+        lastCompletedJob = job;
+        activeJob = null;
+        activeJobId = null;
+        stopElapsed();
+      } else if (job.status === 'failed') {
+        activeJob = job;
+        stopElapsed();
+      } else {
+        activeJob = job;
+      }
+      render();
+    }
+
+    // ── EventSource ──
+    const eventSource = new EventSource('/api/status/active/stream');
+
+    eventSource.addEventListener('idle', () => onIdle());
+
+    eventSource.addEventListener('job_changed', (e) => {
+      const data = JSON.parse(e.data);
+      onJobChanged(data.jobId);
+    });
+
+    eventSource.addEventListener('status', (e) => {
+      const job = JSON.parse(e.data);
+      onStatus(job);
+    });
+
+    eventSource.addEventListener('timeout', () => {
+      console.log('SSE timeout, EventSource will auto-reconnect');
+    });
+
+    eventSource.onerror = (e) => {
+      console.warn('SSE error', e);
+    };
+  </script>
+</body>
+</html>
