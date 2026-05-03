@@ -45,6 +45,9 @@ COPY --from=builder /app/dist ./dist
 # Flutter テンプレートをコピー(claude-code.ts が cwd で参照する)
 COPY templates ./templates
 
+# QR 画面用の静的ファイル(qr.html)をコピー
+COPY public ./public
+
 # 非 root ユーザーで実行(node イメージは既に node ユーザーを持っている)
 RUN mkdir -p /app/.tmp && chown -R node:node /app
 USER node

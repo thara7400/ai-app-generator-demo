@@ -1,0 +1,46 @@
+services:
+
+  aituber:
+    build:
+      context: ./aituber-kit
+      dockerfile: Dockerfile
+    container_name: aituber
+    restart: unless-stopped
+    env_file:
+      - ./aituber-kit/.env
+    environment:
+      - VOICEVOX_SERVER_URL=http://voicevox:50021
+      - NEXT_PUBLIC_CUSTOM_API_URL=http://orchestrator:8080/api/chat
+    volumes:
+      - ./aituber-kit:/app
+      - /app/node_modules
+    depends_on:
+      - voicevox
+    networks:
+      - app-net
+
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+    container_name: voicevox
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: orchestrator
+    restart: unless-stopped
+    env_file:
+      - ./orchestrator/.env
+    environment:
+      - WORK_DIR=/app/.tmp/flutter-projects
+      - AITUBER_BASE_URL=http://aituber:3000
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+

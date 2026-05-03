@@ -25,3 +25,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# SSL 証明書(ローカル開発用、機密)
+certs/
+*.pem
