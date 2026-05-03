@@ -161,6 +161,7 @@ const PROMPTS: Record<AppType, string> = {
 - onTap of a cell:
   - If _isGameOver, do nothing.
   - If _activeMoleIndex == cellIndex:
+    - Call HapticFeedback.lightImpact() FIRST for immediate feedback.
     - Increment _score by 1.
     - Set _activeMoleIndex = null immediately.
     - Cancel _hideMoleTimer (so the next spawn is unaffected).
@@ -187,6 +188,7 @@ void dispose() {
 
 ## Imports
 - import 'package:flutter/material.dart';
+- import 'package:flutter/services.dart';   // for HapticFeedback
 - import 'dart:async';   // for Timer
 - import 'dart:math';    // for Random
 - Do NOT add any other imports.
@@ -276,7 +278,9 @@ void dispose() {
     final a = _revealedIndices[0];
     final b = _revealedIndices[1];
     if (_cards[a] == _cards[b]) {
-      // Match: keep them face-up permanently.
+      // Match: trigger haptic feedback FIRST for immediate response,
+      // then keep them face-up permanently.
+      HapticFeedback.lightImpact();
       Future.delayed(const Duration(milliseconds: 400), () {
         if (!mounted) return;
         setState(() {
@@ -335,6 +339,7 @@ void dispose() {
 
 ## Imports
 - import 'package:flutter/material.dart';
+- import 'package:flutter/services.dart';   // for HapticFeedback
 - import 'dart:async';   // for Future.delayed
 - import 'dart:math';    // for Random
 - Do NOT add any other imports.
@@ -459,6 +464,7 @@ class _GuessEntry {
     });
 
     if (_history.last.guess == _answer) {
+      HapticFeedback.lightImpact();
       _showWinDialog();
       return;
     }
@@ -536,7 +542,7 @@ const COMMON_INSTRUCTIONS = `
 ## Critical Constraints
 - Modify ONLY the file \`lib/main.dart\`
 - Do NOT create other files or modify pubspec.yaml
-- Use ONLY \`package:flutter/material.dart\` (you may use built-in dart:async, dart:math)
+- Use ONLY \`package:flutter/material.dart\` (you may use built-in dart:async, dart:math, and \`package:flutter/services.dart\` for HapticFeedback)
 - NO external packages
 - Must compile with Flutter 3.38+ and null safety
 - Use \`MaterialApp\` with theme set to enable Material 3. Specifically write: \`theme: ThemeData(useMaterial3: true)\`. Do NOT pass useMaterial3 directly to MaterialApp; useMaterial3 is a property of ThemeData, not MaterialApp.
