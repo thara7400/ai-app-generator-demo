@@ -29,3 +29,7 @@ Thumbs.db
 # SSL 証明書(ローカル開発用、機密)
 certs/
 *.pem
+
+# Backup files (created during operations)
+*.bak
+*.bak.*
