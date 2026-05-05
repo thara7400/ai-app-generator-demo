@@ -7,6 +7,8 @@ services:
   voicevox:
     ports:
       - "50021:50021"
+    environment:
+      - VV_CPU_NUM_THREADS=2
 
   orchestrator:
     ports:

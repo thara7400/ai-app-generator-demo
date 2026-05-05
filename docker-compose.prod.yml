@@ -4,6 +4,10 @@ services:
     environment:
       - NEXT_PUBLIC_CUSTOM_API_URL=https://flutter-generated-app.unolive.tech/api/chat
 
+  voicevox:
+    environment:
+      - VV_CPU_NUM_THREADS=16
+
   orchestrator:
     environment:
       - NODE_ENV=production
